@@ -1,0 +1,64 @@
+# Prompt Optimizer configuration
+#
+# Every module below can be toggled independently with `enabled: true/false`
+# and dialed in aggressiveness with `level: 0-10`.
+#   0  -> module makes no changes at all (safest, "do nothing")
+#   10 -> maximum optimization (most aggressive, highest risk of meaning loss)
+#
+# Techniques are layered: safe, low-risk cleanup runs first; the more
+# aggressive semantic rewriting runs last, and only if you enable it.
+# See pipeline.order below to change the sequence.
+
+protected:
+  # Anything wrapped in these tags is passed through untouched by every
+  # module below -- use it for legal clauses, safety rules, schemas,
+  # examples, or API contracts that must not be altered.
+  start_tag: "<protect>"
+  end_tag: "</protect>"
+
+modules:
+  remove_filler_phrases:
+    enabled: true
+    level: 5
+    # e.g. "Could you please summarise this" -> "Summarise this"
+
+  consolidate_instructions:
+    enabled: true
+    level: 5
+    # Merges repeated constraints, e.g. "be concise" + "keep it short" ->
+    # a single kept instruction.
+    embedding_model: "all-MiniLM-L6-v2"
+
+  deduplicate_context:
+    enabled: true
+    level: 5
+    # Removes near-duplicate background/context sentences, keeping the
+    # clearer phrasing.
+    embedding_model: "all-MiniLM-L6-v2"
+
+  convert_to_structure:
+    enabled: true
+    level: 4
+    # Rewrites long comma-chained instruction sentences into a compact
+    # bullet checklist.
+
+  semantic_summarization:
+    enabled: false
+    level: 3
+    # Off by default: this technique can drop details, so opt in
+    # deliberately. Only applies to paragraphs longer than
+    # min_chars_to_trigger, and is discarded if the resulting summary drops
+    # below min_retained_similarity to the original (a similarity safety
+    # check, as recommended for high-stakes workflows).
+    min_chars_to_trigger: 800
+    min_retained_similarity: 0.6
+    embedding_model: "all-MiniLM-L6-v2"
+
+pipeline:
+  # Order matters: safe cleanup first, semantic/structural rewriting last.
+  order:
+    - remove_filler_phrases
+    - consolidate_instructions
+    - deduplicate_context
+    - convert_to_structure
+    - semantic_summarization

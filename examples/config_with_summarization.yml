@@ -1,0 +1,42 @@
+# Same as the root config.yml, but with semantic_summarization switched on
+# and its length trigger lowered so it's easy to see it fire against the
+# short example in long_context_prompt.txt.
+# Use with: python main.py -i examples/long_context_prompt.txt -c examples/config_with_summarization.yml --stats
+
+protected:
+  start_tag: "<protect>"
+  end_tag: "</protect>"
+
+modules:
+  remove_filler_phrases:
+    enabled: true
+    level: 5
+
+  consolidate_instructions:
+    enabled: true
+    level: 5
+    embedding_model: "all-MiniLM-L6-v2"
+
+  deduplicate_context:
+    enabled: true
+    level: 5
+    embedding_model: "all-MiniLM-L6-v2"
+
+  convert_to_structure:
+    enabled: true
+    level: 4
+
+  semantic_summarization:
+    enabled: true
+    level: 3
+    min_chars_to_trigger: 200
+    min_retained_similarity: 0.6
+    embedding_model: "all-MiniLM-L6-v2"
+
+pipeline:
+  order:
+    - remove_filler_phrases
+    - consolidate_instructions
+    - deduplicate_context
+    - convert_to_structure
+    - semantic_summarization
