@@ -49,7 +49,7 @@ modules:
     # deliberately. Only applies to paragraphs longer than
     # min_chars_to_trigger, and is discarded if the resulting summary drops
     # below min_retained_similarity to the original (a similarity safety
-    # check, as recommended for high-stakes workflows).
+    # check, as recommended for high-stakes workflows)
     min_chars_to_trigger: 800
     min_retained_similarity: 0.6
     embedding_model: "all-MiniLM-L6-v2"

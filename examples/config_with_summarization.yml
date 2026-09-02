@@ -1,7 +1,7 @@
 # Same as the root config.yml, but with semantic_summarization switched on
 # and its length trigger lowered so it's easy to see it fire against the
 # short example in long_context_prompt.txt.
-# Use with: python main.py -i examples/long_context_prompt.txt -c examples/config_with_summarization.yml --stats
+# Use with: python main.py -i examples/long_context_prompt.txt -c examples/config_with_summarization.yml --stats 
 
 protected:
   start_tag: "<protect>"

@@ -1,6 +1,6 @@
 Could you please summarise the following article in five bullet points? Please be concise. Keep the answer short. Avoid long explanations.
 
-The customer is unhappy because the delivery was delayed. The delayed delivery made the customer dissatisfied. We need to respond to them quickly.
+The customer is very unhappy because the delivery was delayed. The delayed delivery made the customer dissatisfied. We need to respond to them quickly.
 
 You should classify the ticket, identify urgency, provide a short reason, and return the result in JSON format.
 
