@@ -38,6 +38,11 @@ cleanup runs first, and semantic compression only runs when you turn it on.
   dropping details, it's paired with a similarity check against the
   original text and is off by default.
 
+- **Chat history summarization** — a separate pipeline (structured JSON
+  in, structured JSON out) for agentic conversations, so a long-running
+  agent doesn't forget goals, decisions, constraints, or pending tasks when
+  old messages are truncated. See [Chat History Summarization](#chat-history-summarization) below.
+
 ## How it works
 
 Each technique is its own module under `optimizer/`, so each one can be
@@ -56,12 +61,14 @@ optimizer/
   dedup.py                       deduplicate context
   structure.py                   convert verbose instructions into compact structure
   summarizer.py                  semantic summarisation for long context
+  chat_history.py                structured chat history summarization (see below)
   config.py                      loads and validates config.yml
   pipeline.py                    wires the modules together, in the order config.yml specifies
 examples/
   sample_prompt.txt              short prompt exercising filler/consolidate/dedup/structure/protect
   long_context_prompt.txt        longer background paragraph for the summarisation demo
   config_with_summarization.yml  config.yml with semantic_summarization switched on
+  chat_history_sample.json       12-message agentic conversation for the chat history demo
 ```
 
 Protected sections (anything wrapped in `<protect>...</protect>` by
@@ -280,6 +287,127 @@ optimized = optimize_prompt("Could you please be concise?")
 optimizer = PromptOptimizer(config_path="config.yml")
 result = optimizer.optimize(my_prompt)
 print(result.optimized_text, result.percent_saved)
+```
+
+## Chat History Summarization
+
+Truncating old chat messages to save tokens makes an agent forget goals,
+decisions, constraints, and pending tasks buried in those messages. This
+module summarizes JSON chat history into **structured JSON** instead —
+so an agent's memory survives truncation.
+
+It's a separate pipeline from prompt optimization above (structured JSON
+in, structured JSON out, no `level`/`enabled` per-module tuning) because
+chat history is inherently structured (messages with `role`/`content`/
+`timestamp`), not free-form prompt text. It reuses the same embedding
+backend, so **no new dependencies** are required.
+
+### How it works
+
+```
+JSON chat history → embed each message → rule-based category tags
+   (goal / decision / constraint / preference / fact / pending_task)
+   + embedding-based importance score → rank + dedupe per category
+   → structured JSON summary
+```
+
+Sentence embeddings and scikit-learn are good at classification,
+clustering, and ranking — not text generation — so nothing here rewrites
+message content. Every field in the output is a near-verbatim snippet of
+the messages that produced it, so you can always trace a fact back to
+where it came from.
+
+### Input
+
+A conversation as JSON messages (see
+[`examples/chat_history_sample.json`](examples/chat_history_sample.json)
+for the full file):
+
+```json
+{
+  "conversation_id": "conv_001",
+  "messages": [
+    {"message_id": 1, "role": "user", "content": "I want to analyze our sales performance for FY2025.", "timestamp": "2026-09-03T09:00:00"},
+    {"message_id": 5, "role": "user", "content": "Exclude APAC. I only want North America and Europe.", "timestamp": "2026-09-03T09:00:45"},
+    {"message_id": 7, "role": "user", "content": "The analysis shows that revenue declined by 8% compared with FY2024.", "timestamp": "2026-09-03T09:02:00"}
+  ]
+}
+```
+
+### Running it
+
+```
+python main.py --chat-history examples/chat_history_sample.json --stats
+```
+
+### Output
+
+```json
+{
+  "conversation_id": "conv_001",
+  "summary": "I want to analyze our sales performance for FY2025. Understood. I will compare FY2025 against FY2024 for North America and Europe, excluding APAC. Exclude APAC. I only want North America and Europe. I will analyze the regional and product-level performance and identify the three main drivers of the revenue decline. The analysis shows that revenue declined by 8% compared with FY2024. The 8% decline is significant. I can break down the decline by region and product category.",
+  "user_goals": [
+    "I want to analyze our sales performance for FY2025."
+  ],
+  "decisions": [
+    "I will analyze the regional and product-level performance and identify the three main drivers of the revenue decline.",
+    "Understood. I will compare FY2025 against FY2024 for North America and Europe, excluding APAC."
+  ],
+  "constraints": [
+    "Understood. I will compare FY2025 against FY2024 for North America and Europe, excluding APAC.",
+    "Exclude APAC. I only want North America and Europe."
+  ],
+  "user_preferences": [
+    "Exclude APAC. I only want North America and Europe."
+  ],
+  "key_facts": [
+    "The analysis shows that revenue declined by 8% compared with FY2024.",
+    "The 8% decline is significant. I can break down the decline by region and product category.",
+    "Regional_breakdown: North America -5%, Europe -11%"
+  ],
+  "pending_tasks": [
+    "I will analyze the regional and product-level performance and identify the three main drivers of the revenue decline.",
+    "The 8% decline is significant. I can break down the decline by region and product category.",
+    "Yes. Also identify the top three reasons for the decline.",
+    "Now create a presentation with the findings."
+  ],
+  "message_classifications": [
+    {"message_id": 1, "categories": ["goal"], "importance": 0.73},
+    {"message_id": 5, "categories": ["constraint", "preference"], "importance": 0.49}
+  ]
+}
+```
+```
+Messages: 12 (categorized: 9) -> goals: 1, decisions: 2, constraints: 2, preferences: 1, facts: 3, pending: 4
+```
+
+`message_classifications` (truncated above) lists every message with its
+category tags and a 0-1 importance score — useful for debugging why a
+snippet was, or wasn't, selected.
+
+A message with `"role": "tool"` (message 11 above) is automatically
+tagged `fact`, since tool output is exactly the kind of intermediate
+state an agent needs to remember.
+
+### Configuration
+
+```yaml
+chat_history_summarization:
+  enabled: true
+  embedding_model: "all-MiniLM-L6-v2"
+  max_items_per_category: 5   # cap on items in each output list
+  dedup_similarity_threshold: 0.85   # merges near-duplicate snippets
+```
+
+### Using it as a library
+
+```python
+import json
+from optimizer.chat_history import summarize_chat_history
+
+history = json.load(open("examples/chat_history_sample.json"))
+summary = summarize_chat_history(history)
+print(summary["user_goals"], summary["pending_tasks"])
 ```
 
 ## Tuning levels

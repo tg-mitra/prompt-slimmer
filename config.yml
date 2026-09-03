@@ -62,3 +62,13 @@ pipeline:
     - deduplicate_context
     - convert_to_structure
     - semantic_summarization
+
+# Separate from `modules`/`pipeline` above: chat history is structured JSON
+# (messages with role/content/timestamp), not free-form prompt text, so it
+# runs its own pipeline via `python main.py --chat-history <file.json>`.
+# See docs/chat_history_summarization.MD.
+chat_history_summarization:
+  enabled: true
+  embedding_model: "all-MiniLM-L6-v2"
+  max_items_per_category: 5   # cap on items in each output list (goals, facts, ...)
+  dedup_similarity_threshold: 0.85   # merges near-duplicate snippets within a category

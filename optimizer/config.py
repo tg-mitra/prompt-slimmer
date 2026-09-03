@@ -19,11 +19,20 @@ class ModuleConfig:
 
 
 @dataclass
+class ChatHistoryConfig:
+    enabled: bool = True
+    embedding_model: str = "all-MiniLM-L6-v2"
+    max_items_per_category: int = 5
+    dedup_similarity_threshold: float = 0.85
+
+
+@dataclass
 class OptimizerConfig:
     protected_start_tag: str
     protected_end_tag: str
     modules: dict[str, ModuleConfig]
     pipeline_order: list[str]
+    chat_history: ChatHistoryConfig = field(default_factory=ChatHistoryConfig)
 
     def module(self, name: str) -> ModuleConfig:
         return self.modules.get(name, ModuleConfig(enabled=False, level=0))
@@ -50,9 +59,25 @@ def load_config(path: str | Path | None = None) -> OptimizerConfig:
 
     pipeline_order = (raw.get("pipeline") or {}).get("order") or list(modules.keys())
 
+    chat_history_raw = raw.get("chat_history_summarization") or {}
+    defaults = ChatHistoryConfig()
+    chat_history = ChatHistoryConfig(
+        enabled=bool(chat_history_raw.get("enabled", defaults.enabled)),
+        embedding_model=chat_history_raw.get("embedding_model", defaults.embedding_model),
+        max_items_per_category=int(
+            chat_history_raw.get("max_items_per_category", defaults.max_items_per_category)
+        ),
+        dedup_similarity_threshold=float(
+            chat_history_raw.get(
+                "dedup_similarity_threshold", defaults.dedup_similarity_threshold
+            )
+        ),
+    )
+
     return OptimizerConfig(
         protected_start_tag=protected.get("start_tag", "<protect>"),
         protected_end_tag=protected.get("end_tag", "</protect>"),
         modules=modules,
         pipeline_order=pipeline_order,
+        chat_history=chat_history,
     )

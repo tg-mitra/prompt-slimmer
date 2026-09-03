@@ -1,0 +1,78 @@
+{
+  "conversation_id": "conv_001",
+  "user_id": "user_123",
+  "messages": [
+    {
+      "message_id": 1,
+      "role": "user",
+      "content": "I want to analyze our sales performance for FY2025.",
+      "timestamp": "2026-09-03T09:00:00"
+    },
+    {
+      "message_id": 2,
+      "role": "assistant",
+      "content": "Sure. Would you like to compare FY2025 with FY2024?",
+      "timestamp": "2026-09-03T09:00:10"
+    },
+    {
+      "message_id": 3,
+      "role": "user",
+      "content": "Yes, compare it with FY2024.",
+      "timestamp": "2026-09-03T09:00:20"
+    },
+    {
+      "message_id": 4,
+      "role": "assistant",
+      "content": "Which regions should be included in the analysis?",
+      "timestamp": "2026-09-03T09:00:30"
+    },
+    {
+      "message_id": 5,
+      "role": "user",
+      "content": "Exclude APAC. I only want North America and Europe.",
+      "timestamp": "2026-09-03T09:00:45"
+    },
+    {
+      "message_id": 6,
+      "role": "assistant",
+      "content": "Understood. I will compare FY2025 against FY2024 for North America and Europe, excluding APAC.",
+      "timestamp": "2026-09-03T09:01:00"
+    },
+    {
+      "message_id": 7,
+      "role": "user",
+      "content": "The analysis shows that revenue declined by 8% compared with FY2024.",
+      "timestamp": "2026-09-03T09:02:00"
+    },
+    {
+      "message_id": 8,
+      "role": "assistant",
+      "content": "The 8% decline is significant. I can break down the decline by region and product category.",
+      "timestamp": "2026-09-03T09:02:15"
+    },
+    {
+      "message_id": 9,
+      "role": "user",
+      "content": "Yes. Also identify the top three reasons for the decline.",
+      "timestamp": "2026-09-03T09:02:30"
+    },
+    {
+      "message_id": 10,
+      "role": "assistant",
+      "content": "I will analyze the regional and product-level performance and identify the three main drivers of the revenue decline.",
+      "timestamp": "2026-09-03T09:02:45"
+    },
+    {
+      "message_id": 11,
+      "role": "tool",
+      "content": "regional_breakdown: North America -5%, Europe -11%",
+      "timestamp": "2026-09-03T09:03:00"
+    },
+    {
+      "message_id": 12,
+      "role": "user",
+      "content": "Now create a presentation with the findings.",
+      "timestamp": "2026-09-03T09:05:00"
+    }
+  ]
+}
