@@ -1,0 +1,24 @@
+{
+  "conversation_id": "conv_005",
+  "user_id": "user_654",
+  "messages": [
+    {
+      "message_id": 1,
+      "role": "user",
+      "content": "Hey, quick question about pricing.",
+      "timestamp": "2026-09-03T13:00:00"
+    },
+    {
+      "message_id": 2,
+      "role": "assistant",
+      "content": "Sure, go ahead.",
+      "timestamp": "2026-09-03T13:00:05"
+    },
+    {
+      "message_id": 3,
+      "role": "user",
+      "content": "Actually I figured it out, thanks.",
+      "timestamp": "2026-09-03T13:00:20"
+    }
+  ]
+}

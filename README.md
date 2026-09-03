@@ -69,6 +69,7 @@ examples/
   long_context_prompt.txt        longer background paragraph for the summarisation demo
   config_with_summarization.yml  config.yml with semantic_summarization switched on
   chat_history_sample.json       12-message agentic conversation for the chat history demo
+  chat_history_*.json            more chat history scenarios (see "More examples" below)
 ```
 
 Protected sections (anything wrapped in `<protect>...</protect>` by
@@ -408,6 +409,20 @@ from optimizer.chat_history import summarize_chat_history
 history = json.load(open("examples/chat_history_sample.json"))
 summary = summarize_chat_history(history)
 print(summary["user_goals"], summary["pending_tasks"])
+```
+
+### More examples
+
+| File | Scenario |
+|---|---|
+| `chat_history_sample.json` | Sales analysis — the walkthrough above, plus a `tool`-role message |
+| `chat_history_support_ticket.json` | Customer support — refund preference, opt-out constraint, follow-up task |
+| `chat_history_code_review.json` | Coding agent — test-run tool output, scope constraints, a reuse preference |
+| `chat_history_travel_planning.json` | Trip planning — budget/exclusion constraints, preferences, a scheduling fact |
+| `chat_history_minimal.json` | Small talk with no goals/decisions/facts — shows the summary falls back to the single most central message instead of erroring or returning nothing |
+
+```
+python main.py --chat-history examples/chat_history_support_ticket.json --stats
 ```
 
 ## Tuning levels
